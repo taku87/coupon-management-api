@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git rm:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\ndocs: 要件定義とアーキテクチャ設計ドキュメントを追加\n\n- 要件定義（オリジナル・最終版）\n- システム構成とディレクトリ設計\n- データベース設計とサンプルデータ\nEOF\n)\")",
+      "Bash(git commit:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
