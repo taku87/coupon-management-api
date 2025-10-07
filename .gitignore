@@ -78,3 +78,9 @@ build-iPhoneSimulator/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# JWT keys
+/config/jwt_private_key.pem
+
+# 一時的な実装ガイド
+/docs/guides/
