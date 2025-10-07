@@ -1,0 +1,24 @@
+# Schemafile for ridgepole
+# 実行: bundle exec ridgepole -c config/database.yml -E development -f db/Schemafile --apply
+
+create_table "stores", force: :cascade do |t|
+  t.string "name", null: false, comment: "店舗名"
+  t.datetime "created_at", null: false
+  t.datetime "updated_at", null: false
+end
+
+create_table "coupons", force: :cascade do |t|
+  t.references "store", null: false, foreign_key: { on_delete: :cascade }, comment: "店舗ID"
+  t.string "title", null: false, comment: "クーポン名"
+  t.integer "discount_percentage", null: false, comment: "割引率（1〜100）"
+  t.date "valid_until", null: false, comment: "有効期限"
+  t.datetime "created_at", null: false
+  t.datetime "updated_at", null: false
+
+  t.index ["store_id", "title"], name: "index_coupons_on_store_id_and_title", unique: true
+  t.index ["store_id", "valid_until"], name: "index_coupons_on_store_id_and_valid_until"
+
+  # INFO: discount_percentageに誤った数値が入った場合、ビジネス上の損失に大きくつながる可能性があるため、
+  #       アプリケーションレイヤーのバリデーションに加えて、DBレベルでも1〜100の範囲を保証する
+  t.check_constraint "discount_percentage BETWEEN 1 AND 100", name: "check_discount_percentage"
+end
