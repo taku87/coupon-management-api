@@ -15,8 +15,8 @@ create_table "coupons", force: :cascade do |t|
   t.datetime "created_at", null: false
   t.datetime "updated_at", null: false
 
-  t.index ["store_id", "title"], name: "index_coupons_on_store_id_and_title", unique: true
-  t.index ["store_id", "valid_until"], name: "index_coupons_on_store_id_and_valid_until"
+  t.index [ "store_id", "title" ], name: "index_coupons_on_store_id_and_title", unique: true
+  t.index [ "store_id", "valid_until" ], name: "index_coupons_on_store_id_and_valid_until"
 
   # INFO: discount_percentageに誤った数値が入った場合、ビジネス上の損失に大きくつながる可能性があるため、
   #       アプリケーションレイヤーのバリデーションに加えて、DBレベルでも1〜100の範囲を保証する
