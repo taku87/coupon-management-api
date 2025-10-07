@@ -12,7 +12,10 @@
       "Bash(rails:*)",
       "Bash(gem install:*)",
       "Read(//Users/hanamuratakuya/homemade_app/**)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(bundle install:*)",
+      "Bash(bundle exec rspec:*)",
+      "Bash(bundle list:*)"
     ],
     "deny": [],
     "ask": []
