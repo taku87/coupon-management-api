@@ -6,53 +6,133 @@
 
 - **Ruby**: 3.3.5
 - **Rails**: 8.0.3 (API mode)
-- **Database**: PostgreSQL
+- **Database**: PostgreSQL 16
 - **認証**: JWT (RS256)
 - **認可**: Pundit
 - **テスト**: RSpec, FactoryBot
 
 ## 環境構築
 
-### 必要な環境
+### オプション1: Docker環境（推奨）
 
-- Ruby 3.2以上
-- PostgreSQL
-- Docker & Docker Compose（推奨）
+Docker Composeを使用した環境構築。チーム全体で統一された環境を簡単に構築できます。
 
-### セットアップ手順
+#### 必要な環境
+
+- Docker Desktop
+- Docker Compose
+
+#### セットアップ手順
 
 ```bash
-# リポジトリクローン
+# 1. リポジトリクローン
 git clone <repository-url>
 cd coupon-management-api
 
-# 環境変数設定
+# 2. 環境変数ファイル作成
 cp .env.sample .env
-# .env を編集して必要な環境変数を設定
+# Docker環境の場合、.envはデフォルト設定のままでOK
 
-# 依存関係インストール
-bundle install
+# 3. Dockerコンテナ起動
+docker compose up -d
 
-# データベース作成・マイグレーション
-rails db:create
-bundle exec ridgepole -c config/database.yml -E development -f db/Schemafile --apply
+# 4. データベース作成
+docker compose exec app rails db:create
 
-# サーバー起動
-rails server
+# 5. 動作確認
+# ブラウザで http://localhost:3000 にアクセス
+# Railsのウェルカムページが表示されれば成功
+
+# 6. コンテナ停止
+docker compose down
 ```
 
-### Docker環境でのセットアップ
+#### Dockerコンテナの管理
 
 ```bash
 # コンテナ起動
 docker compose up -d
 
-# データベース作成・マイグレーション
-docker compose exec app rails db:create
-docker compose exec app bundle exec ridgepole -c config/database.yml -E development -f db/Schemafile --apply
+# コンテナ状態確認
+docker compose ps
+
+# アプリケーションログ確認
+docker compose logs app
+
+# コンテナに入る
+docker compose exec app bash
+
+# コンテナ停止
+docker compose down
+```
+
+### オプション2: ローカル環境
+
+ローカルにRubyとPostgreSQLをインストールする場合。
+
+#### 必要な環境
+
+- Ruby 3.3.5
+- PostgreSQL 16
+- Bundler
+
+#### PostgreSQLのインストール（macOS）
+
+```bash
+# Homebrewでインストール
+brew install postgresql@16
+
+# PostgreSQL起動
+brew services start postgresql@16
+
+# 起動確認
+psql --version
+```
+
+#### セットアップ手順
+
+```bash
+# 1. リポジトリクローン
+git clone <repository-url>
+cd coupon-management-api
+
+# 2. 環境変数ファイル作成・編集
+cp .env.sample .env
+
+# .envを以下のように編集（ローカル環境用）
+# DATABASE_HOST=localhost
+# DATABASE_PORT=5432
+# DATABASE_USERNAME=postgres
+# DATABASE_PASSWORD=（ローカルPostgreSQLのパスワード、未設定なら空）
+
+# 3. 依存関係インストール
+bundle install
+
+# 4. データベース作成
+rails db:create
+
+# 5. サーバー起動
+rails server
+
+# 6. 動作確認
+# ブラウザで http://localhost:3000 にアクセス
+# Railsのウェルカムページが表示されれば成功
 ```
 
 ## テスト実行
+
+### Docker環境
+
+```bash
+# 全テスト実行
+docker compose exec app bundle exec rspec
+
+# 特定のテストのみ実行
+docker compose exec app bundle exec rspec spec/models/
+docker compose exec app bundle exec rspec spec/requests/
+```
+
+### ローカル環境
 
 ```bash
 # 全テスト実行
@@ -63,6 +143,54 @@ bundle exec rspec spec/models/
 bundle exec rspec spec/requests/
 ```
 
+## スキーマ管理（Ridgepole）
+
+このプロジェクトではRidgepoleを使用してデータベーススキーマを管理します。
+
+### Docker環境
+
+```bash
+# スキーマ適用
+docker compose exec app bundle exec ridgepole -c config/database.yml -E development -f db/Schemafile --apply
+
+# 差分確認（dry-run）
+docker compose exec app bundle exec ridgepole -c config/database.yml -E development -f db/Schemafile --dry-run
+```
+
+### ローカル環境
+
+```bash
+# スキーマ適用
+bundle exec ridgepole -c config/database.yml -E development -f db/Schemafile --apply
+
+# 差分確認（dry-run）
+bundle exec ridgepole -c config/database.yml -E development -f db/Schemafile --dry-run
+```
+
+## トラブルシューティング
+
+### データベース接続エラー
+
+**エラー**: `could not translate host name "db" to address`
+
+**原因**: ローカル環境で`.env`のDATABASE_HOSTが`db`（Docker用）になっている
+
+**解決策**: `.env`を編集して`DATABASE_HOST=localhost`に変更
+
+### ポート競合エラー
+
+**エラー**: `Bind for 0.0.0.0:3000 failed: port is already allocated`
+
+**原因**: 既にポート3000が使用されている
+
+**解決策**:
+```bash
+# 使用中のプロセスを確認
+lsof -i :3000
+
+# 既存のRailsサーバーを停止してから再起動
+```
+
 ## ドキュメント
 
 - [要件定義](docs/01_requirements.md)
@@ -71,6 +199,7 @@ bundle exec rspec spec/requests/
 - [API仕様](docs/04_api.md)
 - [セキュリティ設計](docs/05_security.md)
 - [テスト方針](docs/06_testing.md)
+- [実装計画](docs/implementation_plan.md)
 
 ## ライセンス
 
