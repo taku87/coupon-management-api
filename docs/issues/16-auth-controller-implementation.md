@@ -27,6 +27,8 @@ POST /api/v1/auth/login でJWTを発行し、認証フローを完成させる�
 - [ ] レスポンスに `{access_token, token_type, expires_in}` を返す
 - [ ] curl でログイン→トークン取得→API呼び出し成功
 
+**→ 完了後、全APIが揃ったので #18 (Request Spec実装) を実施**
+
 ---
 
 ## テスト観点

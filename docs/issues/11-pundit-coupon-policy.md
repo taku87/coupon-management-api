@@ -29,6 +29,8 @@ Punditを導入し、CouponPolicyでテナント境界制御を実装する。
 - [ ] 他店舗クーポンへのアクセスで 403 Forbidden
 - [ ] scope検証（`coupon:read` / `coupon:write`）実装
 
+**→ 完了後すぐに #19 (Policy Spec実装) を実施**
+
 ---
 
 ## テスト観点

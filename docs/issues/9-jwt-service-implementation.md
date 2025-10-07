@@ -28,6 +28,8 @@ kid・iss・aud・exp・jti・scope を含むペイロードで、セキュリ�
 - [ ] rails console で encode/decode が正常動作
 - [ ] 無効署名で JWT::VerificationError が発生
 
+**→ 完了後すぐに #20 (Service Spec実装) を実施**
+
 ---
 
 ## テスト観点

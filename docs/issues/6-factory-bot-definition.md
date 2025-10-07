@@ -25,6 +25,8 @@ RSpecテストで使用するテストデータ生成ファクトリを定義す
 - [ ] `valid_until` はデフォルトで未来日付を生成
 - [ ] rails console で `FactoryBot.create(:coupon)` が成功
 
+**→ 完了後すぐに #17 (Model Spec実装) を実施**
+
 ---
 
 ## テスト観点

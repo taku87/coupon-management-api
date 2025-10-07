@@ -10,11 +10,10 @@
 | フェーズ | 目的 | 含むIssue |
 |---------|------|-----------|
 | **Phase 0: プロジェクト基盤** | Railsプロジェクト初期化、Docker環境構築、基本Gem導入 | #1〜#3 |
-| **Phase 1: Walking Skeleton** | DB→Model→最小APIの垂直スライス。認証なしで動作確認 | #4〜#8 |
-| **Phase 2: 認証・認可** | JWT認証・Pundit認可・テナント境界制御を実装 | #9〜#12 |
-| **Phase 3: 堅牢化** | エラーハンドリング・ページネーション・JSON:API準拠 | #13〜#16 |
-| **Phase 4: テスト自動化** | RSpec全レイヤー実装・CI構築 | #17〜#21 |
-| **Phase 5: 仕上げ** | ドキュメント整備・Seed・動作確認 | #22〜#23 |
+| **Phase 1: Walking Skeleton + テスト基盤** | DB→Model→最小API＋FactoryBot・Specの垂直スライス | #4〜#8, #6, #17 |
+| **Phase 2: 認証・認可 + テスト** | JWT認証・Pundit認可・テナント境界制御＋対応テスト | #9, #20, #10〜#12, #19 |
+| **Phase 3: 堅牢化 + テスト** | エラーハンドリング・Serializer・ページネーション・Auth API＋Request Spec | #13〜#16, #18 |
+| **Phase 4: CI・仕上げ** | CI構築・Seed・ドキュメント整備 | #21〜#23 |
 
 ---
 
@@ -29,72 +28,71 @@
 #3 (Gem導入)
 ```
 
-### Phase 1: Walking Skeleton
+### Phase 1: Walking Skeleton + テスト基盤
 ```
 #3
   ↓
 #4 (Schemafile)
   ↓
-#5 (Model実装) ───→ #6 (FactoryBot)
+#5 (Model実装)
+  ↓
+#6 (FactoryBot定義) ──→ #17 (Model Spec) ※実装直後にテスト
   ↓
 #7 (GET API最小実装)
   ↓
 #8 (POST API最小実装)
 ```
 
-### Phase 2: 認証・認可
+### Phase 2: 認証・認可 + テスト
 ```
-#3                    #8
-  ↓                    ↓
-#9 (JwtService) ───→ #10 (ApplicationController認証)
-                        ↓
-                      #11 (Pundit & Policy)
-                        ↓
-                      #12 (テナント境界強制)
+#3
+  ↓
+#9 (JwtService) ──→ #20 (Service Spec) ※実装直後にテスト
+  ↓
+#10 (ApplicationController認証)
+  ↓
+#11 (Pundit & Policy) ──→ #19 (Policy Spec) ※実装直後にテスト
+  ↓
+#12 (テナント境界強制)
 ```
 
-### Phase 3: 堅牢化
+### Phase 3: 堅牢化 + テスト
 ```
 #12
   ↓
 #13 (エラーハンドリング)
   ↓
 #14 (Serializer) ───→ #15 (Pagy)
-
-#9
-  ↓
-#16 (AuthController)
-```
-
-### Phase 4: テスト自動化
-```
-#6          #16        #11        #9
-  ↓           ↓          ↓          ↓
-#17 (Model) #18 (Request) #19 (Policy) #20 (Service)
+                        ↓
+#9                    #16 (AuthController)
+  ↓                    ↓
+            ┌──────────┘
             ↓
-          #21 (CI構築)
+        #18 (Request Spec) ※全API実装後にE2Eテスト
 ```
 
-### Phase 5: 仕上げ
+### Phase 4: CI・仕上げ
 ```
-#5           #21
-  ↓            ↓
-#22 (seeds) → #23 (README)
+#18
+  ↓
+#21 (CI構築) ※全テスト揃った後
+  ↓
+#22 (seeds)
+  ↓
+#23 (README)
 ```
 
 ### 全体フロー（簡易版）
 ```
 Phase 0 (#1→#2→#3)
   ↓
-Phase 1 (#4→#5→#6→#7→#8)
+Phase 1 (#4→#5→#6→#17→#7→#8)
   ↓
-Phase 2 (#9→#10→#11→#12)
+Phase 2 (#9→#20→#10→#11→#19→#12)
   ↓
-Phase 3 (#13→#14→#15, #16)
+Phase 3 (#13→#14→#15→#16→#18)
   ↓
-Phase 4 (#17→#18→#19→#20→#21)
-  ↓
-Phase 5 (#22→#23)
+Phase 4 (#21→#22→#23)
 ```
 
 ---
@@ -168,12 +166,15 @@ Phase 5 (#22→#23)
 ### Issue #6: FactoryBot定義（Store/Coupon）
 **概要**: spec/factories に Store/Coupon のファクトリを定義
 **依存**: #5
+**フェーズ**: Phase 1
 **ラベル**: backend, test
 **受け入れ基準（AC）**:
 - [ ] `spec/factories/stores.rb` で `:store` ファクトリ定義
 - [ ] `spec/factories/coupons.rb` で `:coupon` ファクトリ定義（store関連含む）
 - [ ] `valid_until` はデフォルトで未来日付を生成
 - [ ] rails console で `FactoryBot.create(:coupon)` が成功
+
+**→ 完了後すぐに #17 (Model Spec) を実施**
 
 ---
 
@@ -206,6 +207,7 @@ Phase 5 (#22→#23)
 ### Issue #9: JwtService実装（RS256署名・検証）
 **概要**: RS256鍵ペアによるJWT発行・検証サービスを実装
 **依存**: #3
+**フェーズ**: Phase 2
 **ラベル**: backend, security
 **受け入れ基準（AC）**:
 - [ ] `app/services/jwt_service.rb` に `encode(payload)` / `decode(token)` 実装
@@ -213,6 +215,8 @@ Phase 5 (#22→#23)
 - [ ] `kid`, `iss`, `aud`, `exp`, `iat`, `jti`, `sub`, `scope` をペイロードに含む
 - [ ] rails console で encode/decode が正常動作
 - [ ] 無効署名で JWT::VerificationError が発生
+
+**→ 完了後すぐに #20 (Service Spec) を実施**
 
 ---
 
@@ -232,6 +236,7 @@ Phase 5 (#22→#23)
 ### Issue #11: Pundit導入・CouponPolicy実装
 **概要**: Punditを導入し、CouponPolicyでテナント境界制御を実装
 **依存**: #10
+**フェーズ**: Phase 2
 **ラベル**: backend, security
 **受け入れ基準（AC）**:
 - [ ] `rails g pundit:install` 実行
@@ -240,6 +245,8 @@ Phase 5 (#22→#23)
 - [ ] CouponsControllerで `authorize @coupon` 呼び出し
 - [ ] 他店舗クーポンへのアクセスで 403 Forbidden
 - [ ] scope検証（`coupon:read` / `coupon:write`）実装
+
+**→ 完了後すぐに #19 (Policy Spec) を実施**
 
 ---
 
@@ -299,6 +306,7 @@ Phase 5 (#22→#23)
 ### Issue #16: AuthController実装（ログインAPI）
 **概要**: POST /api/v1/auth/login でJWTを発行
 **依存**: #9
+**フェーズ**: Phase 3
 **ラベル**: backend, api
 **受け入れ基準（AC）**:
 - [ ] `app/controllers/api/v1/auth_controller.rb` 作成
@@ -307,11 +315,14 @@ Phase 5 (#22→#23)
 - [ ] レスポンスに `{access_token, expires_in}` を返す
 - [ ] curl でログイン→トークン取得→API呼び出し成功
 
+**→ 完了後、全APIが揃ったので #18 (Request Spec) を実施**
+
 ---
 
 ### Issue #17: Model Spec実装（Store/Coupon）
 **概要**: RSpecでモデルのバリデーション・関連テストを実装
 **依存**: #6
+**フェーズ**: Phase 1
 **ラベル**: backend, test
 **受け入れ基準（AC）**:
 - [ ] `spec/models/store_spec.rb` で name必須テスト
@@ -320,11 +331,14 @@ Phase 5 (#22→#23)
 - [ ] title一意制約（同一store内）テスト
 - [ ] `bundle exec rspec spec/models` 全グリーン
 
+**※#6完了直後に実施。モデル実装とテストをセットで完結させる**
+
 ---
 
 ### Issue #18: Request Spec実装（Coupons API）
 **概要**: RSpecでクーポンAPI（GET/POST）の入出力テスト
 **依存**: #16, #17
+**フェーズ**: Phase 3
 **ラベル**: backend, test
 **受け入れ基準（AC）**:
 - [ ] `spec/requests/api/v1/coupons_spec.rb` 作成
@@ -335,11 +349,14 @@ Phase 5 (#22→#23)
 - [ ] バリデーションエラーで422
 - [ ] `bundle exec rspec spec/requests` 全グリーン
 
+**※#16完了後に実施。全API（Auth + Coupons）のE2Eテストを実行**
+
 ---
 
 ### Issue #19: Policy Spec実装（CouponPolicy）
 **概要**: Pundit認可ロジックのRSpecテスト
 **依存**: #11
+**フェーズ**: Phase 2
 **ラベル**: backend, test
 **受け入れ基準（AC）**:
 - [ ] `spec/policies/coupon_policy_spec.rb` 作成
@@ -348,11 +365,14 @@ Phase 5 (#22→#23)
 - [ ] scope不足（`coupon:write`なし）で create? が false
 - [ ] `bundle exec rspec spec/policies` 全グリーン
 
+**※#11完了直後に実施。Policy実装とテストをセットで完結させる**
+
 ---
 
 ### Issue #20: Service Spec実装（JwtService）
 **概要**: JWT発行・検証サービスのRSpecテスト
 **依存**: #9
+**フェーズ**: Phase 2
 **ラベル**: backend, test
 **受け入れ基準（AC）**:
 - [ ] `spec/services/jwt_service_spec.rb` 作成
@@ -361,11 +381,14 @@ Phase 5 (#22→#23)
 - [ ] exp超過で例外発生
 - [ ] `bundle exec rspec spec/services` 全グリーン
 
+**※#9完了直後に実施。JwtService実装とテストをセットで完結させる**
+
 ---
 
 ### Issue #21: CI構築（GitHub Actions）
 **概要**: GitHub ActionsでRSpec自動実行
-**依存**: #20
+**依存**: #18
+**フェーズ**: Phase 4
 **ラベル**: infra, ci
 **受け入れ基準（AC）**:
 - [ ] `.github/workflows/ci.yml` 作成
@@ -374,6 +397,8 @@ Phase 5 (#22→#23)
 - [ ] `bundle exec rspec` 実行
 - [ ] PRマージ前にCI必須チェック設定
 - [ ] CI実行成功（グリーンバッジ）
+
+**※全テストスイート（#17,#18,#19,#20）が揃った後に実施**
 
 ---
 
