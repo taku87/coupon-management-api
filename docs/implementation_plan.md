@@ -100,7 +100,7 @@ Phase 4 (#21→#22→#23)
 ## Issueアウトライン表
 
 ### Issue #1: Rails APIプロジェクト初期化
-**概要**: Rails 8.1 API modeプロジェクトを作成し、Gitリポジトリを初期化する
+**概要**: Rails 8.0 API modeプロジェクトを作成し、Gitリポジトリを初期化する
 **依存**: -
 **ラベル**: backend, setup
 **受け入れ基準（AC）**:

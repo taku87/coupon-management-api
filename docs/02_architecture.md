@@ -16,7 +16,7 @@ APIサーバはRails単体で稼働し、DBはPostgreSQLを使用する。
 
 | 構成要素     | 技術                           | 役割                 |
 | -------- | ---------------------------- | ------------------ |
-| アプリケーション | Ruby on Rails 8.1 (API mode) | REST API提供         |
+| アプリケーション | Ruby on Rails 8.0 (API mode) | REST API提供         |
 | データベース   | PostgreSQL                   | データ永続化             |
 | Webサーバ   | Puma                         | Rails標準Webサーバ      |
 | 認証       | JWT（RS256, kid付）             | ステートレス認証           |
