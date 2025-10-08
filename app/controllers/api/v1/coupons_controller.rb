@@ -10,8 +10,12 @@ module Api
 
         # current_storeスコープでクーポンを取得
         coupons = current_store.coupons
-        items_per_page = params[:items].to_i if params[:items].present?
-        pagy, paginated_coupons = pagy(coupons, items: items_per_page)
+
+        # Pagyオプションを準備（itemsパラメータからlimitを設定）
+        pagy_options = {}
+        pagy_options[:limit] = params[:items].to_i if params[:items].present?
+
+        pagy, paginated_coupons = pagy(coupons, **pagy_options)
 
         render json: CouponSerializer.new(paginated_coupons).serializable_hash.merge(
           meta: pagination_meta(pagy)
