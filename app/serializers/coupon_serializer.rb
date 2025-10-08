@@ -12,7 +12,4 @@ class CouponSerializer
              :valid_until,
              :created_at,
              :updated_at
-
-  # Store情報を含める
-  belongs_to :store
 end
