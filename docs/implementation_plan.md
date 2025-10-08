@@ -297,9 +297,9 @@ Phase 4 (#21→#22→#23)
 **受け入れ基準（AC）**:
 - [ ] `config/initializers/pagy.rb` 作成（デフォルト20件、最大100件）
 - [ ] CouponsController#index で `pagy(current_store.coupons)` 適用
-- [ ] `page[number]` / `page[size]` パラメータ対応
-- [ ] レスポンスに `meta: {page, per_page, count, pages}` を追加
-- [ ] curl で `?page[size]=5&page[number]=2` 動作確認
+- [ ] `page` / `limit` パラメータ対応
+- [ ] レスポンスに `meta: {current_page, per_page, total_count, total_pages}` を追加
+- [ ] curl で `?limit=5&page=2` 動作確認
 
 ---
 
@@ -430,6 +430,6 @@ Phase 4 (#21→#22→#23)
 ## 要確認事項
 
 - **Issue #9**: RS256鍵ペアの生成方法・保管場所を事前確認（開発環境は.env、本番はSecrets Manager想定）
-- **Issue #15**: page[size]上限100超過時の挙動（400エラー or 自動丸め）をBizと確認
+- **Issue #15**: limit上限100超過時の挙動（自動丸めで100に制限）
 - **Issue #16**: ログインAPIの認証方式（store_uid + パスワードなのか、外部IdP連携なのか）を明確化
 - **Issue #21**: CI環境での環境変数注入方法（GitHub Secrets利用）を確認

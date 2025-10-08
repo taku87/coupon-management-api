@@ -13,7 +13,7 @@ GET一覧にPagyを適用し、メタ情報を返す。
 
 1. `config/initializers/pagy.rb` 作成
 2. CouponsController#index で pagy 適用
-3. `page[number]` / `page[size]` パラメータ対応
+3. `page` / `limit` パラメータ対応
 4. レスポンスに meta 情報追加
 5. curl での動作確認
 
@@ -23,9 +23,9 @@ GET一覧にPagyを適用し、メタ情報を返す。
 
 - [ ] `config/initializers/pagy.rb` 作成（デフォルト20件、最大100件）
 - [ ] CouponsController#index で `pagy(current_store.coupons)` 適用
-- [ ] `page[number]` / `page[size]` パラメータ対応
-- [ ] レスポンスに `meta: {page, per_page, count, pages}` を追加
-- [ ] curl で `?page[size]=5&page[number]=2` 動作確認
+- [ ] `page` / `limit` パラメータ対応
+- [ ] レスポンスに `meta: {current_page, per_page, total_count, total_pages}` を追加
+- [ ] curl で `?limit=5&page=2` 動作確認
 
 ---
 
@@ -33,8 +33,8 @@ GET一覧にPagyを適用し、メタ情報を返す。
 
 - **ページネーション確認**:
   - デフォルトで20件取得
-  - `page[size]` で件数変更
-  - `page[number]` でページ変更
+  - `limit` で件数変更
+  - `page` でページ変更
   - meta 情報が正しい
 
 ---
@@ -50,28 +50,34 @@ GET一覧にPagyを適用し、メタ情報を返す。
 
 ```ruby
 # config/initializers/pagy.rb
-require 'pagy/extras/items'
+require 'pagy/extras/overflow'
+require 'pagy/extras/limit'
 
-Pagy::DEFAULT[:items] = 20
-Pagy::DEFAULT[:max_items] = 100
+Pagy::DEFAULT[:limit] = 20
+Pagy::DEFAULT[:limit_max] = 100
+Pagy::DEFAULT[:limit_param] = :limit
+Pagy::DEFAULT[:overflow] = :last_page
 
 # app/controllers/application_controller.rb
 include Pagy::Backend
 
 # app/controllers/api/v1/coupons_controller.rb
 def index
-  pagy, coupons = pagy(current_store.coupons.order(valid_until: :asc, id: :asc),
-                       items: params.dig(:page, :size) || 20,
-                       page: params.dig(:page, :number) || 1)
+  coupons = current_store.coupons
+  pagy, paginated_coupons = pagy(coupons)
 
-  render json: CouponSerializer.new(coupons).serializable_hash.merge(
-    meta: {
-      page: pagy.page,
-      per_page: pagy.items,
-      count: pagy.count,
-      pages: pagy.pages
-    }
+  render json: CouponSerializer.new(paginated_coupons).serializable_hash.merge(
+    meta: pagination_meta(pagy)
   )
+end
+
+def pagination_meta(pagy)
+  {
+    current_page: pagy.page,
+    total_pages: pagy.pages,
+    total_count: pagy.count,
+    per_page: pagy.limit
+  }
 end
 ```
 
@@ -79,4 +85,4 @@ end
 
 ## 要確認事項
 
-- `page[size]` 上限100超過時の挙動（400エラー or 自動丸め）
+- `limit` 上限100超過時の挙動（自動丸めで100に制限）

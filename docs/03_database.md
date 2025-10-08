@@ -11,19 +11,21 @@
 
 ```mermaid
 erDiagram
-    STORE ||--o { COUPON : has_many
+    STORE ||--o{ COUPON : "has many"
+
     STORE {
         bigint id PK
-        string name "店舗名 (NOT NULL)"
+        string name "店舗名（NOT NULL）"
         datetime created_at
         datetime updated_at
     }
+
     COUPON {
         bigint id PK
         bigint store_id FK "stores.id"
-        string title "クーポン名 (NOT NULL)"
-        integer discount_percentage "割引率 (1〜100)"
-        date valid_until "有効期限 (日付)"
+        string title "クーポン名（NOT NULL）"
+        integer discount_percentage "割引率（1〜100）"
+        date valid_until "有効期限（日付）"
         datetime created_at
         datetime updated_at
     }
@@ -106,8 +108,8 @@ erDiagram
 **バリデーション方針**
 
 * `valid_until` の過去日付チェックは実装しない（論理上は許容）
-  * 理由: 過去のクーポンも記録として残す運用を想定
-  * 業務要件として「過去のクーポンを記録として保持する」ことを許容する
+  * 理由: 過去のクーポンも記録として保持する運用を想定しています。
+実際には、過去日付でクーポンを作成するのはアンチパターンと考えられますが、イレギュラー対応が必要となる場面も想定されると感じたため、アプリケーション側では制約を設けない方針としました。
 
 ---
 
@@ -141,10 +143,10 @@ erDiagram
 
 **将来の拡張可能性への配慮**
 
-将来的に営業時間が「翌1時まで」など、時刻単位での有効性管理が必要になる可能性を考慮し、
+一方で、将来的に営業時間が「翌1時まで」など、時刻単位での有効性管理が必要になる可能性を考慮し、
 以下の設計上の配慮を行う。
 
-* 日付比較ロジックをモデル層のメソッド（例：`Coupon#active?`）に集約しておく
+* 日付比較ロジックをモデル層のメソッド（例：`Coupon#active?`）に集約するようにする。
   → 後から date → datetime に変更しても影響範囲を局所化できる
 * SerializerやSchema定義上に「日付単位での有効期限」と明記し、
   型拡張が発生してもAPI契約の整合性を保ちやすくする
@@ -156,14 +158,8 @@ erDiagram
 ## 6. 一覧取得と最適化方針
 
 * 既定並び順: **指定なし**（DBのデフォルト順、通常は `id ASC`）
-  * 理由: ユースケースにより最適なソート順が異なるため、API呼び出し側で制御することを想定
+  * 理由: ユースケースにより最適なソート順が異なるため、API呼び出し側で制御することを一旦想定します。もしくはAPI側で `valid_until ASC` などのソートオプションを受け付ける形も考えられます。
   * 詳細は [DISCUSSION.md](../DISCUSSION.md) の「クーポン一覧のデフォルトソート順」を参照
-* クエリ例
-
-  * 全件: `current_store.coupons`
-  * 有効クーポンのみ: `current_store.coupons.where("valid_until >= ?", Date.current)`
-* インデックス `(store_id, valid_until)` により効率化
-* 頻繁に「有効のみ」を取得する場合、部分インデックスを導入
 
 ---
 
@@ -192,8 +188,6 @@ store.coupons.create!(
 
 * **一意性:** `(store_id, title)` で UNIQUE
 * **クエリガード:** すべてのアクセスは `current_store.coupons` 起点（`Coupon.find` 禁止）
-* **将来的選択肢:** PostgreSQL Row-Level Security (RLS) により
-  `store_id = current_setting('app.current_store_id')` の制約も検討可
 
 > クエリ規約の詳細は [05_security.md](./05_security.md) を参照。
 
