@@ -162,8 +162,8 @@ bundle exec rspec spec/requests/
 | メソッド | パス | 概要 | 認証 |
 |---------|------|------|------|
 | POST | `/api/v1/auth/login` | JWT発行（ログイン） | 不要 |
-| GET | `/api/v1/coupons` | クーポン一覧取得 | 必須 |
-| POST | `/api/v1/coupons` | クーポン作成 | 必須 |
+| GET | `/api/v1/stores/:store_id/coupons` | クーポン一覧取得 | 必須 |
+| POST | `/api/v1/stores/:store_id/coupons` | クーポン作成 | 必須 |
 
 詳細は [docs/04_api.md](./docs/04_api.md) を参照してください。
 
@@ -197,8 +197,9 @@ curl -X POST http://localhost:3000/api/v1/auth/login \
 ```bash
 # 上記で取得したaccess_tokenを使用
 export TOKEN="取得したaccess_token"
+# store_idは1を使用（seeds.rbで作成されたストア）
 
-curl http://localhost:3000/api/v1/coupons \
+curl http://localhost:3000/api/v1/stores/1/coupons \
   -H "Authorization: Bearer $TOKEN"
 
 # レスポンス例:
@@ -233,14 +234,17 @@ curl http://localhost:3000/api/v1/coupons \
 #### 3. クーポン作成
 
 ```bash
-curl -X POST http://localhost:3000/api/v1/coupons \
+curl -X POST http://localhost:3000/api/v1/stores/1/coupons \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "coupon": {
-      "title": "新春セール",
-      "discount_percentage": 30,
-      "valid_until": "2026-01-31"
+    "data": {
+      "type": "coupon",
+      "attributes": {
+        "title": "新春セール",
+        "discount_percentage": 30,
+        "valid_until": "2026-01-31"
+      }
     }
   }'
 
