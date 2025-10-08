@@ -69,12 +69,17 @@ Coupon 管理用 REST API の**外部仕様**を定義する。
 
 * クエリパラメータ:
 
-  * `page[number]` … 1 起点（デフォルト: 1）
-  * `page[size]` … 1〜100（デフォルト: 20）
+  * `page` … ページ番号、1起点（デフォルト: 1）
+  * `limit` … 1ページあたりの件数、1〜100（デフォルト: 20）
 * レスポンスの `meta` にページ情報を含める。
 
 ```json
-"meta": { "page": 1, "per_page": 20, "count": 57, "pages": 3 }
+"meta": {
+  "current_page": 1,
+  "total_pages": 3,
+  "total_count": 57,
+  "per_page": 20
+}
 ```
 
 ---
@@ -87,7 +92,7 @@ Coupon 管理用 REST API の**外部仕様**を定義する。
 * 説明: `:store_id` のクーポン一覧を返す。**他店舗のデータは返さない**。
 * クエリ:
 
-  * `page[number]` / `page[size]`
+  * `page` / `limit`
   * （将来）`filter[active]=true` … `valid_until >= today` のみを返す
 * 成功レスポンス（200 / JSON:API 例）:
 
@@ -106,7 +111,12 @@ Coupon 管理用 REST API の**外部仕様**を定義する。
       }
     }
   ],
-  "meta": { "page": 1, "per_page": 20, "count": 57, "pages": 3 }
+  "meta": {
+    "current_page": 1,
+    "total_pages": 3,
+    "total_count": 57,
+    "per_page": 20
+  }
 }
 ```
 

@@ -43,8 +43,8 @@ RSpec.describe "Pagination", type: :request do
       expect(json["meta"]["current_page"]).to eq(2)
     end
 
-    it "items パラメータで1ページあたりの件数を変更できる" do
-      get "/api/v1/coupons?items=10", headers: headers
+    it "limit パラメータで1ページあたりの件数を変更できる" do
+      get "/api/v1/coupons?limit=10", headers: headers
 
       expect(response).to have_http_status(:ok)
       json = JSON.parse(response.body)
