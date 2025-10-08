@@ -155,11 +155,13 @@ erDiagram
 
 ## 6. 一覧取得と最適化方針
 
-* 既定並び順: `valid_until ASC, id ASC`
+* 既定並び順: **指定なし**（DBのデフォルト順、通常は `id ASC`）
+  * 理由: ユースケースにより最適なソート順が異なるため、API呼び出し側で制御することを想定
+  * 詳細は [DISCUSSION.md](../DISCUSSION.md) の「クーポン一覧のデフォルトソート順」を参照
 * クエリ例
 
-  * 全件: `current_store.coupons.order(valid_until: :asc, id: :asc)`
-  * 有効クーポンのみ: `current_store.coupons.where("valid_until >= ?", Date.current).order(valid_until: :asc, id: :asc)`
+  * 全件: `current_store.coupons`
+  * 有効クーポンのみ: `current_store.coupons.where("valid_until >= ?", Date.current)`
 * インデックス `(store_id, valid_until)` により効率化
 * 頻繁に「有効のみ」を取得する場合、部分インデックスを導入
 

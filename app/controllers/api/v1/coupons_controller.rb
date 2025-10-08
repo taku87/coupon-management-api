@@ -2,7 +2,6 @@
 
 module Api
   module V1
-    # Coupons API Controller
     class CouponsController < ApplicationController
       before_action :verify_store_access
 
@@ -10,7 +9,6 @@ module Api
         policy = CouponPolicy.new(current_store, Coupon, pundit_policy_context)
         raise Pundit::NotAuthorizedError unless policy.index?
 
-        # current_storeスコープでクーポンを取得
         coupons = current_store.coupons
         pagy, paginated_coupons = pagy(coupons)
 
@@ -32,14 +30,12 @@ module Api
       private
 
       def verify_store_access
-        # パスパラメータのstore_idと認証済みstoreの一致を確認
         raise Pundit::NotAuthorizedError if params[:store_id].to_i != current_store.id
       end
 
       def coupon_params
         data = params.require(:data)
 
-        # typeの検証
         unless data[:type] == "coupon"
           raise ActionController::BadRequest, "Invalid type: expected 'coupon'"
         end

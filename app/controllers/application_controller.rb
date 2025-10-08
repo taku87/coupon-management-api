@@ -2,12 +2,10 @@ class ApplicationController < ActionController::API
   include Pundit::Authorization
   include Pagy::Backend
 
-  # カスタム例外クラス
   class AuthenticationError < StandardError; end
 
   before_action :authenticate_request!
 
-  # エラーハンドリング（JSON:API形式）
   rescue_from ActiveRecord::RecordNotFound, with: :handle_record_not_found
   rescue_from ActiveRecord::RecordInvalid, with: :handle_record_invalid
   rescue_from Pundit::NotAuthorizedError, with: :handle_forbidden
@@ -48,7 +46,6 @@ class ApplicationController < ActionController::API
     header.split(" ").last
   end
 
-  # JSON:API形式のエラーレスポンスを生成
   def render_error(status:, code:, title:, detail:)
     status_code = Rack::Utils.status_code(status)
     render json: {
@@ -61,7 +58,6 @@ class ApplicationController < ActionController::API
     }, status: status
   end
 
-  # 404 Not Found
   def handle_record_not_found(exception)
     render_error(
       status: :not_found,
@@ -71,7 +67,6 @@ class ApplicationController < ActionController::API
     )
   end
 
-  # 422 Unprocessable Entity
   def handle_record_invalid(exception)
     render_error(
       status: :unprocessable_entity,
@@ -81,7 +76,6 @@ class ApplicationController < ActionController::API
     )
   end
 
-  # 403 Forbidden
   def handle_forbidden(_exception)
     render_error(
       status: :forbidden,
@@ -91,7 +85,6 @@ class ApplicationController < ActionController::API
     )
   end
 
-  # 401 Unauthorized (AuthenticationError)
   def handle_authentication_error(exception)
     render_error(
       status: :unauthorized,
@@ -101,7 +94,6 @@ class ApplicationController < ActionController::API
     )
   end
 
-  # 401 Unauthorized (JWT errors)
   def handle_jwt_error(exception)
     render_error(
       status: :unauthorized,
@@ -111,7 +103,6 @@ class ApplicationController < ActionController::API
     )
   end
 
-  # 400 Bad Request (Parameter Missing)
   def handle_parameter_missing(exception)
     render_error(
       status: :bad_request,
@@ -121,7 +112,6 @@ class ApplicationController < ActionController::API
     )
   end
 
-  # 400 Bad Request (BadRequest)
   def handle_bad_request(exception)
     render_error(
       status: :bad_request,
@@ -131,7 +121,6 @@ class ApplicationController < ActionController::API
     )
   end
 
-  # ページネーションメタデータを生成
   def pagination_meta(pagy)
     {
       current_page: pagy.page,
