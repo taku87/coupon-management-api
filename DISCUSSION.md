@@ -155,7 +155,18 @@ Biz側やメンバーへの相談・確認が必要な項目を集約し、設�
 
 ---
 
-### 5. クーポン一覧のデフォルトソート順
+### 5. 認証API（/auth/login）の実装方針
+
+**分類**: セキュリティ・認証設計
+**対象ドキュメント**: [05_security.md](./docs/05_security.md), [04_api.md](./docs/04_api.md)
+**優先度**: 高
+
+#### 現状
+
+現在の実装では、`POST /api/v1/auth/login` は　便宜上`store_id`を受け取っていますが、実際はemailとpasswordでの認証などが想定されると思います。
+
+
+### 6. クーポン一覧のデフォルトソート順
 
 **分類**: API仕様確認
 **対象ドキュメント**: [03_database.md](./docs/03_database.md), [04_api.md](./docs/04_api.md)
