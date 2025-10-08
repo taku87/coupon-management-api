@@ -175,5 +175,30 @@ RSpec.describe "API::V1::Coupons", type: :request do
         expect(json["errors"].first["status"]).to eq("403")
       end
     end
+
+    context "typeが不正な場合" do
+      let(:invalid_type_params) do
+        {
+          data: {
+            type: "invalid_type",
+            attributes: {
+              title: "新春セール",
+              discount_percentage: 20,
+              valid_until: 30.days.from_now.to_date
+            }
+          }
+        }
+      end
+
+      it "400エラーを返す" do
+        post "/api/v1/stores/#{store.id}/coupons", params: invalid_type_params, headers: headers, as: :json
+
+        expect(response).to have_http_status(:bad_request)
+        json = JSON.parse(response.body)
+
+        expect(json["errors"]).to be_an(Array)
+        expect(json["errors"].first["status"]).to eq("400")
+      end
+    end
   end
 end

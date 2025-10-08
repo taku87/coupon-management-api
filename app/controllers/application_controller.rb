@@ -14,6 +14,7 @@ class ApplicationController < ActionController::API
   rescue_from AuthenticationError, with: :handle_authentication_error
   rescue_from JWT::DecodeError, JWT::ExpiredSignature, JWT::VerificationError, with: :handle_jwt_error
   rescue_from ActionController::ParameterMissing, with: :handle_parameter_missing
+  rescue_from ActionController::BadRequest, with: :handle_bad_request
 
   private
 
@@ -114,6 +115,18 @@ class ApplicationController < ActionController::API
         status: "400",
         code: "bad_request",
         title: "パラメータが不足しています",
+        detail: exception.message
+      } ]
+    }, status: :bad_request
+  end
+
+  # 400 Bad Request (BadRequest)
+  def handle_bad_request(exception)
+    render json: {
+      errors: [ {
+        status: "400",
+        code: "bad_request",
+        title: "不正なリクエストです",
         detail: exception.message
       } ]
     }, status: :bad_request
