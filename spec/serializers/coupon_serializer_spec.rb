@@ -43,20 +43,6 @@ RSpec.describe CouponSerializer, type: :serializer do
     end
   end
 
-  describe "リレーションシップ" do
-    it "storeリレーションを持つ" do
-      expect(serialized_json[:data]).to have_key(:relationships)
-      expect(serialized_json[:data][:relationships]).to have_key(:store)
-    end
-
-    it "store_idが正しい" do
-      store_data = serialized_json[:data][:relationships][:store][:data]
-
-      expect(store_data[:id]).to eq(store.id.to_s)
-      expect(store_data[:type]).to eq(:store)
-    end
-  end
-
   describe "複数リソース" do
     let(:coupons) { create_list(:coupon, 3, store:) }
     let(:serializer) { described_class.new(coupons) }

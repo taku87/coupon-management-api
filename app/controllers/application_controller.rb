@@ -48,88 +48,87 @@ class ApplicationController < ActionController::API
     header.split(" ").last
   end
 
-  # 404 Not Found
-  def handle_record_not_found(exception)
+  # JSON:API形式のエラーレスポンスを生成
+  def render_error(status:, code:, title:, detail:)
+    status_code = Rack::Utils.status_code(status)
     render json: {
       errors: [ {
-        status: "404",
-        code: "not_found",
-        title: "リソースが見つかりません",
-        detail: exception.message
+        status: status_code.to_s,
+        code: code,
+        title: title,
+        detail: detail
       } ]
-    }, status: :not_found
+    }, status: status
+  end
+
+  # 404 Not Found
+  def handle_record_not_found(exception)
+    render_error(
+      status: :not_found,
+      code: "not_found",
+      title: "リソースが見つかりません",
+      detail: exception.message
+    )
   end
 
   # 422 Unprocessable Entity
   def handle_record_invalid(exception)
-    render json: {
-      errors: [ {
-        status: "422",
-        code: "invalid_record",
-        title: "バリデーションエラー",
-        detail: exception.record.errors.full_messages.join(", ")
-      } ]
-    }, status: :unprocessable_entity
+    render_error(
+      status: :unprocessable_entity,
+      code: "invalid_record",
+      title: "バリデーションエラー",
+      detail: exception.record.errors.full_messages.join(", ")
+    )
   end
 
   # 403 Forbidden
   def handle_forbidden(_exception)
-    render json: {
-      errors: [ {
-        status: "403",
-        code: "forbidden",
-        title: "アクセス権限がありません",
-        detail: "このリソースへのアクセスは許可されていません"
-      } ]
-    }, status: :forbidden
+    render_error(
+      status: :forbidden,
+      code: "forbidden",
+      title: "アクセス権限がありません",
+      detail: "このリソースへのアクセスは許可されていません"
+    )
   end
 
   # 401 Unauthorized (AuthenticationError)
   def handle_authentication_error(exception)
-    render json: {
-      errors: [ {
-        status: "401",
-        code: "unauthorized",
-        title: "認証に失敗しました",
-        detail: exception.message
-      } ]
-    }, status: :unauthorized
+    render_error(
+      status: :unauthorized,
+      code: "unauthorized",
+      title: "認証に失敗しました",
+      detail: exception.message
+    )
   end
 
   # 401 Unauthorized (JWT errors)
   def handle_jwt_error(exception)
-    render json: {
-      errors: [ {
-        status: "401",
-        code: "invalid_token",
-        title: "トークンが無効です",
-        detail: exception.message
-      } ]
-    }, status: :unauthorized
+    render_error(
+      status: :unauthorized,
+      code: "invalid_token",
+      title: "トークンが無効です",
+      detail: exception.message
+    )
   end
 
   # 400 Bad Request (Parameter Missing)
   def handle_parameter_missing(exception)
-    render json: {
-      errors: [ {
-        status: "400",
-        code: "bad_request",
-        title: "パラメータが不足しています",
-        detail: exception.message
-      } ]
-    }, status: :bad_request
+    render_error(
+      status: :bad_request,
+      code: "bad_request",
+      title: "パラメータが不足しています",
+      detail: exception.message
+    )
   end
 
   # 400 Bad Request (BadRequest)
   def handle_bad_request(exception)
-    render json: {
-      errors: [ {
-        status: "400",
-        code: "bad_request",
-        title: "不正なリクエストです",
-        detail: exception.message
-      } ]
-    }, status: :bad_request
+    render_error(
+      status: :bad_request,
+      code: "bad_request",
+      title: "不正なリクエストです",
+      detail: exception.message
+    )
   end
 
   # ページネーションメタデータを生成
