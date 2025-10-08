@@ -40,28 +40,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-        ports:
-          - 5432:5432
-        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
-
     steps:
-      - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libpq-dev libyaml-dev pkg-config
-
       - name: Checkout code
         uses: actions/checkout@v5
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
 
       - name: Generate JWT keys for testing
         run: |
@@ -69,22 +50,14 @@ jobs:
           openssl genrsa -out config/jwt_private_key.pem 2048
           openssl rsa -in config/jwt_private_key.pem -pubout -out config/jwt_public_key.pem
 
-      - name: Setup Database
-        env:
-          RAILS_ENV: test
-          DATABASE_USERNAME: postgres
-          DATABASE_PASSWORD: password
-          TEST_DATABASE_HOST: localhost
-          TEST_DATABASE_PORT: 5432
-        run: |
-          bundle exec rails db:create
-          bundle exec ridgepole -c config/database.yml -E test -f db/Schemafile --apply
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Run RSpec
-        env:
-          RAILS_ENV: test
-          DATABASE_USERNAME: postgres
-          DATABASE_PASSWORD: password
-          TEST_DATABASE_HOST: localhost
-          TEST_DATABASE_PORT: 5432
-        run: bundle exec rspec --format documentation
+      - name: Run tests with docker-compose.test.yml
+        run: |
+          docker compose -f docker-compose.test.yml run --rm test bundle exec ridgepole -c config/database.yml -E test -f db/Schemafile --apply
+          docker compose -f docker-compose.test.yml run --rm test bundle exec rspec --format documentation
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f docker-compose.test.yml down -v
