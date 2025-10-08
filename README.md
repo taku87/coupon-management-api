@@ -39,11 +39,17 @@ docker compose up -d
 # 4. データベース作成
 docker compose exec app rails db:create
 
-# 5. 動作確認
-# ブラウザで http://localhost:3000 にアクセス
-# Railsのウェルカムページが表示されれば成功
+# 5. スキーマ適用
+docker compose exec app bundle exec ridgepole -c config/database.yml -E development -f db/Schemafile --apply
 
-# 6. コンテナ停止
+# 6. サンプルデータ投入
+docker compose exec app bundle exec rails db:seed
+
+# 7. 動作確認
+# ブラウザで http://localhost:3000/up にアクセス
+# "ok"が表示されれば成功
+
+# 8. コンテナ停止
 docker compose down
 ```
 
@@ -111,12 +117,18 @@ bundle install
 # 4. データベース作成
 rails db:create
 
-# 5. サーバー起動
+# 5. スキーマ適用
+bundle exec ridgepole -c config/database.yml -E development -f db/Schemafile --apply
+
+# 6. サンプルデータ投入
+bundle exec rails db:seed
+
+# 7. サーバー起動
 rails server
 
-# 6. 動作確認
-# ブラウザで http://localhost:3000 にアクセス
-# Railsのウェルカムページが表示されれば成功
+# 8. 動作確認
+# ブラウザで http://localhost:3000/up にアクセス
+# "ok"が表示されれば成功
 ```
 
 ## テスト実行
@@ -141,6 +153,116 @@ bundle exec rspec
 # 特定のテストのみ実行
 bundle exec rspec spec/models/
 bundle exec rspec spec/requests/
+```
+
+## API仕様
+
+### エンドポイント一覧
+
+| メソッド | パス | 概要 | 認証 |
+|---------|------|------|------|
+| POST | `/api/v1/auth/login` | JWT発行（ログイン） | 不要 |
+| GET | `/api/v1/coupons` | クーポン一覧取得 | 必須 |
+| POST | `/api/v1/coupons` | クーポン作成 | 必須 |
+
+詳細は [docs/04_api.md](./docs/04_api.md) を参照してください。
+
+### ローカル動作確認（curl例）
+
+#### 1. JWTトークン取得（ログイン）
+
+```bash
+# サンプルストア1でログイン（db/seeds.rbで作成されたストアを使用）
+# store_uidはrails consoleで Store.first.id を実行して確認してください
+curl -X POST http://localhost:3000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "auth": {
+      "store_uid": 1,
+      "scope": "coupon:read coupon:write"
+    }
+  }'
+
+# レスポンス例:
+# {
+#   "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImRlZmF1bHQta2V5LWlkIn0...",
+#   "token_type": "Bearer",
+#   "expires_in": 900,
+#   "scope": "coupon:read coupon:write"
+# }
+```
+
+#### 2. クーポン一覧取得
+
+```bash
+# 上記で取得したaccess_tokenを使用
+export TOKEN="取得したaccess_token"
+
+curl http://localhost:3000/api/v1/coupons \
+  -H "Authorization: Bearer $TOKEN"
+
+# レスポンス例:
+# {
+#   "data": [
+#     {
+#       "id": "1",
+#       "type": "coupon",
+#       "attributes": {
+#         "title": "10% OFFクーポン",
+#         "discount_percentage": 10,
+#         "valid_until": "2025-10-31",
+#         "created_at": "2025-10-08T12:00:00.000Z",
+#         "updated_at": "2025-10-08T12:00:00.000Z"
+#       },
+#       "relationships": {
+#         "store": {
+#           "data": { "id": "1", "type": "store" }
+#         }
+#       }
+#     }
+#   ],
+#   "meta": {
+#     "current_page": 1,
+#     "total_pages": 1,
+#     "total_count": 5,
+#     "per_page": 20
+#   }
+# }
+```
+
+#### 3. クーポン作成
+
+```bash
+curl -X POST http://localhost:3000/api/v1/coupons \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "coupon": {
+      "title": "新春セール",
+      "discount_percentage": 30,
+      "valid_until": "2026-01-31"
+    }
+  }'
+
+# レスポンス例（201 Created）:
+# {
+#   "data": {
+#     "id": "12",
+#     "type": "coupon",
+#     "attributes": {
+#       "title": "新春セール",
+#       "discount_percentage": 30,
+#       "valid_until": "2026-01-31",
+#       "created_at": "2025-10-08T12:30:00.000Z",
+#       "updated_at": "2025-10-08T12:30:00.000Z"
+#     },
+#     "relationships": {
+#       "store": {
+#         "data": { "id": "1", "type": "store" }
+#       }
+#     }
+#   }
+# }
 ```
 
 ## スキーマ管理（Ridgepole）
