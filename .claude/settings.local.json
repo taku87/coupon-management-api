@@ -15,7 +15,19 @@
       "Bash(cat:*)",
       "Bash(bundle install:*)",
       "Bash(bundle exec rspec:*)",
-      "Bash(bundle list:*)"
+      "Bash(bundle list:*)",
+      "Bash(docker compose exec:*)",
+      "Bash(openssl genrsa:*)",
+      "Bash(git log:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(docker compose:*)",
+      "Bash(git push:*)",
+      "Bash(curl -X POST http://localhost:3000/api/v1/auth/login -H \"Content-Type: application/json\" -d '{\n    \"\"\"\"auth\"\"\"\": {\n      \"\"\"\"store_uid\"\"\"\": 210,\n      \"\"\"\"scope\"\"\"\": \"\"\"\"coupon:read coupon:write\"\"\"\"\n    }\n  }')",
+      "Bash(curl -s -X POST http://localhost:3000/api/v1/auth/login -H \"Content-Type: application/json\" -d '{\"\"\"\"auth\"\"\"\":{\"\"\"\"store_uid\"\"\"\":210,\"\"\"\"scope\"\"\"\":\"\"\"\"coupon:read coupon:write\"\"\"\"}}')",
+      "Bash(python3:*)",
+      "Bash(git restore:*)",
+      "WebFetch(domain:ddnexus.github.io)",
+      "Bash(bundle exec rubocop:*)"
     ],
     "deny": [],
     "ask": []

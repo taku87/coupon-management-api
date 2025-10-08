@@ -12,9 +12,9 @@ RSpec.describe "Pagination", type: :request do
     create_list(:coupon, 25, store:)
   end
 
-  describe "GET /api/v1/coupons with pagination" do
+  describe "GET /api/v1/stores/:store_id/coupons with pagination" do
     it "デフォルトで20件を返す" do
-      get "/api/v1/coupons", headers: headers
+      get "/api/v1/stores/#{store.id}/coupons", headers: headers
 
       expect(response).to have_http_status(:ok)
       json = JSON.parse(response.body)
@@ -22,7 +22,7 @@ RSpec.describe "Pagination", type: :request do
     end
 
     it "ページネーションメタデータを含む" do
-      get "/api/v1/coupons", headers: headers
+      get "/api/v1/stores/#{store.id}/coupons", headers: headers
 
       expect(response).to have_http_status(:ok)
       json = JSON.parse(response.body)
@@ -35,7 +35,7 @@ RSpec.describe "Pagination", type: :request do
     end
 
     it "page パラメータで2ページ目を取得できる" do
-      get "/api/v1/coupons?page=2", headers: headers
+      get "/api/v1/stores/#{store.id}/coupons?page=2", headers: headers
 
       expect(response).to have_http_status(:ok)
       json = JSON.parse(response.body)
@@ -44,7 +44,7 @@ RSpec.describe "Pagination", type: :request do
     end
 
     it "limit パラメータで1ページあたりの件数を変更できる" do
-      get "/api/v1/coupons?limit=10", headers: headers
+      get "/api/v1/stores/#{store.id}/coupons?limit=10", headers: headers
 
       expect(response).to have_http_status(:ok)
       json = JSON.parse(response.body)
@@ -54,7 +54,7 @@ RSpec.describe "Pagination", type: :request do
     end
 
     it "範囲外のページ番号は最終ページを返す" do
-      get "/api/v1/coupons?page=100", headers: headers
+      get "/api/v1/stores/#{store.id}/coupons?page=100", headers: headers
 
       expect(response).to have_http_status(:ok)
       json = JSON.parse(response.body)
