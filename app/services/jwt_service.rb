@@ -4,7 +4,6 @@ require "jwt"
 require "openssl"
 require "securerandom"
 
-# JWT発行・検証サービス（RS256署名）
 class JwtService
   ALGORITHM = "RS256"
   CLOCK_SKEW = 60 # 秒
@@ -53,9 +52,8 @@ class JwtService
         iat_leeway: CLOCK_SKEW
       }
 
-      # JWT.decodeは [payload, header] の配列を返す
       decoded = JWT.decode(token, public_key, true, options)
-      decoded[0] # payloadのみ返却
+      decoded[0]
     end
 
     private

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# Couponリソースのシリアライザ（JSON:API準拠）
 class CouponSerializer
   include JSONAPI::Serializer
 

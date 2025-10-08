@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# Storeリソースのシリアライザ（JSON:API準拠）
 class StoreSerializer
   include JSONAPI::Serializer
 
