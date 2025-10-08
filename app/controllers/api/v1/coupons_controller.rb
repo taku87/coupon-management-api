@@ -37,7 +37,9 @@ module Api
       end
 
       def coupon_params
-        params.require(:coupon).permit(:title, :discount_percentage, :valid_until)
+        params.require(:data)
+              .require(:attributes)
+              .permit(:title, :discount_percentage, :valid_until)
       end
     end
   end

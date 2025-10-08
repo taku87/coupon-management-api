@@ -95,10 +95,13 @@ RSpec.describe "API::V1::Coupons", type: :request do
   describe "POST /api/v1/stores/:store_id/coupons" do
     let(:valid_params) do
       {
-        coupon: {
-          title: "新春セール",
-          discount_percentage: 20,
-          valid_until: 30.days.from_now.to_date
+        data: {
+          type: "coupon",
+          attributes: {
+            title: "新春セール",
+            discount_percentage: 20,
+            valid_until: 30.days.from_now.to_date
+          }
         }
       }
     end
@@ -131,10 +134,13 @@ RSpec.describe "API::V1::Coupons", type: :request do
     context "バリデーションエラーの場合" do
       let(:invalid_params) do
         {
-          coupon: {
-            title: "",
-            discount_percentage: 150,
-            valid_until: nil
+          data: {
+            type: "coupon",
+            attributes: {
+              title: "",
+              discount_percentage: 150,
+              valid_until: nil
+            }
           }
         }
       end
