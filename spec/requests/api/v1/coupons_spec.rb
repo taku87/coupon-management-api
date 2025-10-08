@@ -9,7 +9,7 @@ RSpec.describe "API::V1::Coupons", type: :request do
   let(:read_only_token) { JwtService.encode(store_uid: store.id, scope: "coupon:read") }
   let(:headers) { { "Authorization" => "Bearer #{token}" } }
 
-  describe "GET /api/v1/coupons" do
+  describe "GET /api/v1/stores/:store_id/coupons" do
     before do
       create_list(:coupon, 3, store:)
       create_list(:coupon, 2, store: other_store)
@@ -17,7 +17,7 @@ RSpec.describe "API::V1::Coupons", type: :request do
 
     context "認証ありでcoupon:readスコープを持つ場合" do
       it "自店舗のクーポン一覧を返す" do
-        get "/api/v1/coupons", headers: { "Authorization" => "Bearer #{read_only_token}" }
+        get "/api/v1/stores/#{store.id}/coupons", headers: { "Authorization" => "Bearer #{read_only_token}" }
 
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
@@ -31,7 +31,7 @@ RSpec.describe "API::V1::Coupons", type: :request do
       end
 
       it "他店舗のクーポンは含まれない" do
-        get "/api/v1/coupons", headers: { "Authorization" => "Bearer #{read_only_token}" }
+        get "/api/v1/stores/#{store.id}/coupons", headers: { "Authorization" => "Bearer #{read_only_token}" }
 
         json = JSON.parse(response.body)
         coupon_ids = json["data"].map { |c| c["id"].to_i }
@@ -41,7 +41,7 @@ RSpec.describe "API::V1::Coupons", type: :request do
       end
 
       it "ページネーションメタデータを含む" do
-        get "/api/v1/coupons", headers: { "Authorization" => "Bearer #{read_only_token}" }
+        get "/api/v1/stores/#{store.id}/coupons", headers: { "Authorization" => "Bearer #{read_only_token}" }
 
         json = JSON.parse(response.body)
 
@@ -55,7 +55,7 @@ RSpec.describe "API::V1::Coupons", type: :request do
 
     context "認証なしの場合" do
       it "401エラーを返す" do
-        get "/api/v1/coupons"
+        get "/api/v1/stores/#{store.id}/coupons"
 
         expect(response).to have_http_status(:unauthorized)
         json = JSON.parse(response.body)
@@ -69,7 +69,19 @@ RSpec.describe "API::V1::Coupons", type: :request do
       let(:write_only_token) { JwtService.encode(store_uid: store.id, scope: "coupon:write") }
 
       it "403エラーを返す" do
-        get "/api/v1/coupons", headers: { "Authorization" => "Bearer #{write_only_token}" }
+        get "/api/v1/stores/#{store.id}/coupons", headers: { "Authorization" => "Bearer #{write_only_token}" }
+
+        expect(response).to have_http_status(:forbidden)
+        json = JSON.parse(response.body)
+
+        expect(json["errors"]).to be_an(Array)
+        expect(json["errors"].first["status"]).to eq("403")
+      end
+    end
+
+    context "異なるstore_idを指定した場合" do
+      it "403エラーを返す（テナント境界チェック）" do
+        get "/api/v1/stores/#{other_store.id}/coupons", headers: { "Authorization" => "Bearer #{read_only_token}" }
 
         expect(response).to have_http_status(:forbidden)
         json = JSON.parse(response.body)
@@ -80,7 +92,7 @@ RSpec.describe "API::V1::Coupons", type: :request do
     end
   end
 
-  describe "POST /api/v1/coupons" do
+  describe "POST /api/v1/stores/:store_id/coupons" do
     let(:valid_params) do
       {
         coupon: {
@@ -94,7 +106,7 @@ RSpec.describe "API::V1::Coupons", type: :request do
     context "認証ありでcoupon:writeスコープを持つ場合" do
       it "クーポンを作成し201を返す" do
         expect do
-          post "/api/v1/coupons", params: valid_params, headers: headers, as: :json
+          post "/api/v1/stores/#{store.id}/coupons", params: valid_params, headers: headers, as: :json
         end.to change(store.coupons, :count).by(1)
 
         expect(response).to have_http_status(:created)
@@ -107,10 +119,10 @@ RSpec.describe "API::V1::Coupons", type: :request do
       end
 
       it "作成したクーポンはcurrent_storeに紐づく" do
-        post "/api/v1/coupons", params: valid_params, headers: headers, as: :json
+        post "/api/v1/stores/#{store.id}/coupons", params: valid_params, headers: headers, as: :json
 
         json = JSON.parse(response.body)
-        coupon = Coupon.find(json["data"]["id"])
+        coupon = store.coupons.find(json["data"]["id"])
 
         expect(coupon.store_id).to eq(store.id)
       end
@@ -128,7 +140,7 @@ RSpec.describe "API::V1::Coupons", type: :request do
       end
 
       it "422エラーを返す" do
-        post "/api/v1/coupons", params: invalid_params, headers: headers, as: :json
+        post "/api/v1/stores/#{store.id}/coupons", params: invalid_params, headers: headers, as: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
         json = JSON.parse(response.body)
@@ -140,7 +152,7 @@ RSpec.describe "API::V1::Coupons", type: :request do
 
     context "認証なしの場合" do
       it "401エラーを返す" do
-        post "/api/v1/coupons", params: valid_params, as: :json
+        post "/api/v1/stores/#{store.id}/coupons", params: valid_params, as: :json
 
         expect(response).to have_http_status(:unauthorized)
       end
@@ -148,7 +160,7 @@ RSpec.describe "API::V1::Coupons", type: :request do
 
     context "coupon:writeスコープを持たない場合" do
       it "403エラーを返す" do
-        post "/api/v1/coupons", params: valid_params, headers: { "Authorization" => "Bearer #{read_only_token}" }, as: :json
+        post "/api/v1/stores/#{store.id}/coupons", params: valid_params, headers: { "Authorization" => "Bearer #{read_only_token}" }, as: :json
 
         expect(response).to have_http_status(:forbidden)
         json = JSON.parse(response.body)

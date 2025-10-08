@@ -4,6 +4,8 @@ module Api
   module V1
     # Coupons API Controller
     class CouponsController < ApplicationController
+      before_action :verify_store_access
+
       def index
         policy = CouponPolicy.new(current_store, Coupon, pundit_policy_context)
         raise Pundit::NotAuthorizedError unless policy.index?
@@ -28,6 +30,11 @@ module Api
       end
 
       private
+
+      def verify_store_access
+        # パスパラメータのstore_idと認証済みstoreの一致を確認
+        raise Pundit::NotAuthorizedError if params[:store_id].to_i != current_store.id
+      end
 
       def coupon_params
         params.require(:coupon).permit(:title, :discount_percentage, :valid_until)
