@@ -37,7 +37,15 @@ module Api
       end
 
       def coupon_params
-        params.require(:coupon).permit(:title, :discount_percentage, :valid_until)
+        data = params.require(:data)
+
+        # typeの検証
+        unless data[:type] == "coupon"
+          raise ActionController::BadRequest, "Invalid type: expected 'coupon'"
+        end
+
+        data.require(:attributes)
+            .permit(:title, :discount_percentage, :valid_until)
       end
     end
   end
