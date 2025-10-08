@@ -10,7 +10,7 @@ module Api
 
         # current_storeスコープでクーポンを取得
         coupons = current_store.coupons
-        pagy, paginated_coupons = pagy(coupons, items: params[:items])
+        pagy, paginated_coupons = pagy(coupons, items: params[:items]&.to_i)
 
         render json: CouponSerializer.new(paginated_coupons).serializable_hash.merge(
           meta: pagination_meta(pagy)
